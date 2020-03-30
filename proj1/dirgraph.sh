@@ -25,6 +25,9 @@ while [ "$1" != "" ]; do
   esac
 done
 
+# Just so it works correctly for me :)
+DIR="$DIR""/"
+
 # Result variables
 DIRS=0
 FILES=0
@@ -42,9 +45,15 @@ O1GIB=0
 magic_do_what_you_need_to_do() {
   # If should be ignored
   if [[ $IGNORING == "1" ]]; then
-    if [[ $1 == *"$IGNORE"* ]]; then
+    CMP1=${1#"$DIR"}
+    IFS=$'/'
+    CMP=($CMP1)
+    for i in "${CMP[@]}"; do
+      if [[ $i =~ ^IGNORE$ ]]; then
       return
-    fi
+      fi
+    done
+    IFS=$'\n'
   fi
   if [[ -d $1 ]]; then
     # If directory
@@ -77,9 +86,51 @@ magic_do_what_you_need_to_do() {
 }
 
 #Some more magic to get those hastags
+FIRST="1"
+if [ -t 1 ]; then
+  COLS=$(tput cols)
+  COLS=$((COLS-13))
+else
+  COLS=79
+fi
+BIGGEST=0
 magic_get_my_hasgtags() {
   if [[ $NORM == "1" ]]; then
-    echo
+    if [ $FIRST == "1" ]; then
+      FIRST="0"
+      # Find the biggest one
+      if [ "$BIGGEST" -ge $B100 ]; then
+        BIGGEST=$B100
+      elif [ "$BIGGEST" -ge $KIB1 ]; then
+        BIGGEST=$KIB1
+      elif [ "$BIGGEST" -ge $KIB10 ]; then
+        BIGGEST=$KIB10
+      elif [ "$BIGGEST" -ge $KIB100 ]; then
+        BIGGEST=$KIB100
+      elif [ "$BIGGEST" -ge $MIB1 ]; then
+        BIGGEST=$MIB1
+      elif [ "$BIGGEST" -ge $MIB10 ]; then
+        BIGGEST=$MIB10
+      elif [ "$BIGGEST" -ge $MIB100 ]; then
+        BIGGEST=$MIB100
+      elif [ "$BIGGEST" -ge $GIB1 ]; then
+        BIGGEST=$GIB1
+      elif [ "$BIGGEST" -ge $O1GIB ]; then
+        BIGGEST=$O1GIB
+      fi
+    fi
+
+    HASTAGS=""
+    HASHNBR=0
+
+    HELPME=$(())
+
+    I=0
+    while [[ $I -lt $HASNBR ]]; do
+      HASTAGS="$HASTAGS""#"
+      I=$((I+1))
+    done
+
   else
     HASTAGS=""
     I=0
