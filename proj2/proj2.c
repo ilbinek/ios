@@ -16,12 +16,6 @@
 #define UNMAPIT(pointer) munmap(pointer, sizeof(int));
 
 // God please be with me while I do this
-int pi = 0;
-int ig = 0;
-int jg = 0;
-int it = 0;
-int jt = 0;
-
 FILE *file = NULL;
 
 // Shared
@@ -59,14 +53,13 @@ int init() {
     // Get some randomness into it!
     srand(time(0));
     // Let's get those shared bytes
+
     MAPIT(rest)
-    MAPIT(migRest);
+    MAPIT(migRest)
     MAPIT(nb)
     MAPIT(nc)
     MAPIT(ne)
     MAPIT(a)
-    *rest = pi;
-    *migRest = pi;
     // And also some of those, eh, files
     file = fopen("proj2.out", "w");
     // Did you clean up after yousrself? Or do I have to do it now? :sadcat:
@@ -96,7 +89,7 @@ void cleanup() {
     unlink_sems();
 }
 
-void imigrant_be_imigrant(int id) {
+void imigrant_be_imigrant(int id, int it) {
     // started
     sem_wait(sem_write);
         (*a)++;
@@ -148,7 +141,7 @@ void imigrant_be_imigrant(int id) {
     exit(0);
 }
 
-void judge_be_judge() {
+void judge_be_judge(int jg, int jt) {
     while (1) {
         while(*ne == 0) {}
         // Get ready
@@ -168,13 +161,7 @@ void judge_be_judge() {
         // confirm
 
         int i = 0;
-        while (1) {
-            sem_wait(sem_write);
-                if (*ne != *nc) {
-                    sem_post(sem_write);
-                    break;
-                }
-            sem_post(sem_write);
+        while (*ne != *nc) {
             if (i == 0) {
                 sem_wait(sem_write);
                 (*a)++;
@@ -224,12 +211,12 @@ void judge_be_judge() {
     exit(0);
 }
 
-void imigrant_spawner() {
+void imigrant_spawner(int pi, int ig, int it) {
     for (int i = 0; i < pi; ++i) {
         randomSleep(ig);
         pid_t RID = fork();
         if (RID == 0) {
-            imigrant_be_imigrant(i + 1);
+            imigrant_be_imigrant(i + 1, it);
         }
     }
     exit(0);
@@ -237,6 +224,12 @@ void imigrant_spawner() {
 
 int main(int argc, char *argv[])
 {
+    int hpi = 0;
+    int hig = 0;
+    int hjg = 0;
+    int hit = 0;
+    int hjt = 0;
+
     // Parsing
     if (argc != 6) {
         printf("%s", "ERROR - Wrong number of arguments\n");
@@ -254,7 +247,7 @@ int main(int argc, char *argv[])
                     printf("%s", "ERROR - Wrong number of IP\n");
                     return 1;
                 } else if (x <= INT_MAX) {
-                    pi = (int)x;
+                    hpi = (int)x;
                 } else {
                     printf("%s", "ERROR - Way to many IP\n");
                     return 1;
@@ -266,7 +259,7 @@ int main(int argc, char *argv[])
                     printf("%s", "ERROR - Wrong IG\n");
                     return 1;
                 } else if (x <= INT_MAX) {
-                    ig = (int)x;
+                    hig = (int)x;
                 } else {
                     printf("%s", "ERROR - IG error\n");
                     return 1;
@@ -279,7 +272,7 @@ int main(int argc, char *argv[])
                     return 1;
                     // Even though I am an atheist
                 } else if (x <= INT_MAX) {
-                    jg = (int)x;
+                    hjg = (int)x;
                 } else {
                     printf("%s", "ERROR - JG error\n");
                     return 1;
@@ -291,7 +284,7 @@ int main(int argc, char *argv[])
                     printf("%s", "ERROR - Wrong IT\n");
                     return 1;
                 } else if (x <= INT_MAX) {
-                    it = (int)x;
+                    hit = (int)x;
                 } else {
                     printf("%s", "ERROR - IT error\n");
                     return 1;
@@ -303,7 +296,7 @@ int main(int argc, char *argv[])
                     printf("%s", "ERROR - Wrong JT\n");
                     return 1;
                 } else if (x <= INT_MAX) {
-                    jt = (int)x;
+                    hjt = (int)x;
                 } else {
                     printf("%s", "ERROR - JT error\n");
                     return 1;
@@ -313,7 +306,7 @@ int main(int argc, char *argv[])
         iterator++;
     }
 
-    printf("%d, %d, %d, %d, %d\n", pi, ig, jg, it, jt);
+    // printf("%d, %d, %d, %d, %d\n", pi, ig, jg, it, jt);
 
     // Arguments were parsed, let's try to do some magic
     int in = init();
@@ -322,14 +315,17 @@ int main(int argc, char *argv[])
         init();
     }
 
+    *rest = hpi;
+    *migRest = hpi;
+
     pid_t RID = fork();
     if (RID == 0) {
-        imigrant_spawner();
+        imigrant_spawner(hpi, hig, hit);
     }
 
     RID = fork();
     if (RID == 0) {
-        judge_be_judge();
+        judge_be_judge(hjg, hjt);
     }
 
     while (*migRest != 0) {}
