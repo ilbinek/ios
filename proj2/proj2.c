@@ -171,6 +171,7 @@ void judge_be_judge() {
         while (1) {
             sem_wait(sem_write);
                 if (*ne != *nc) {
+                    sem_post(sem_write);
                     break;
                 }
             sem_post(sem_write);
