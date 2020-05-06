@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <semaphore.h>
-#include <bits/fcntl-linux.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include <time.h>
@@ -70,13 +70,13 @@ int init() {
     // And also some of those, eh, files
     file = fopen("proj2.out", "w");
     // Did you clean up after yousrself? Or do I have to do it now? :sadcat:
-    if (sem_write = sem_open(SEM_NAME_WRITE, O_CREAT | O_EXCL, 0666, 1) == SEM_FAILED) {
+    if ((sem_write = sem_open(SEM_NAME_WRITE, O_CREAT | O_EXCL, 0666, 1)) == SEM_FAILED) {
         return -1;
     }
-    if (sem_enter = sem_open(SEM_NAME_ENTER, O_CREAT | O_EXCL, 0666, 1) == SEM_FAILED) {
+    if ((sem_enter = sem_open(SEM_NAME_ENTER, O_CREAT | O_EXCL, 0666, 1)) == SEM_FAILED) {
         return -1;
     }
-    if (sem_enter = sem_open(SEM_NAME_CONFIRM, O_CREAT | O_EXCL, 0666, 1) == SEM_FAILED) {
+    if ((sem_enter = sem_open(SEM_NAME_CONFIRM, O_CREAT | O_EXCL, 0666, 1)) == SEM_FAILED) {
         return -1;
     }
     return 0;

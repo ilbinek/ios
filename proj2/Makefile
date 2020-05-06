@@ -4,7 +4,7 @@ CFLAGS=-std=gnu99 -Wall -Wextra -Werror -pedantic
 all: proj2
 
 proj2: proj2.o
-	$(CC) $(CFLAGS) proj2.o -o proj2
+	$(CC) $(CFLAGS) proj2.o -o proj2 -pthread
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
