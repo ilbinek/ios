@@ -39,7 +39,7 @@ sem_t *sem_confirm;
 
 void randomSleep(int time) {
     if (time != 0) {
-        usleep(rand() % time * 1000);
+        usleep((rand() % time) * 1000);
     }
 }
 
@@ -76,7 +76,7 @@ int init() {
     if ((sem_enter = sem_open(SEM_NAME_ENTER, O_CREAT | O_EXCL, 0666, 1)) == SEM_FAILED) {
         return -1;
     }
-    if ((sem_enter = sem_open(SEM_NAME_CONFIRM, O_CREAT | O_EXCL, 0666, 1)) == SEM_FAILED) {
+    if ((sem_confirm = sem_open(SEM_NAME_CONFIRM, O_CREAT | O_EXCL, 0666, 0)) == SEM_FAILED) {
         return -1;
     }
     return 0;
@@ -100,7 +100,7 @@ void imigrant_be_imigrant(int id) {
     // started
     sem_wait(sem_write);
         (*a)++;
-        fprintf(file, "%d\t: IMM %d:\tstarts\n", *a, id);
+        fprintf(file, "%d: IMM %d: starts \n", *a, id);
         fflush(file);
     sem_post(sem_write);
 
@@ -110,7 +110,7 @@ void imigrant_be_imigrant(int id) {
             (*a)++;
             (*ne)++;
             (*nb)++;
-            fprintf(file, "%d\t: IMM %d:\tenters:\t%d\t%d\t%d\n", *a, id, *ne, *nc, *nb);
+            fprintf(file, "%d: IMM %d: enters: %d: %d: %d \n", *a, id, *ne, *nc, *nb);
             fflush(file);
         sem_post(sem_write);
     sem_post(sem_enter);
@@ -118,7 +118,7 @@ void imigrant_be_imigrant(int id) {
     sem_wait(sem_write);
         (*a)++;
         (*nc)++;
-        fprintf(file, "%d\t: IMM %d:\tchecks:\t%d\t%d\t%d\n", *a, id, *ne, *nc, *nb);
+        fprintf(file, "%d: IMM %d: checks: %d: %d: %d \n", *a, id, *ne, *nc, *nb);
         fflush(file);
     sem_post(sem_write);
     // wait for judge
@@ -126,13 +126,13 @@ void imigrant_be_imigrant(int id) {
     // get certificate
     sem_wait(sem_write);
         (*a)++;
-        fprintf(file, "%d\t: IMM %d:\twants certificate:\t%d\t%d\t%d\n", *a, id, *ne, *nc, *nb);
+        fprintf(file, "%d: IMM %d: wants certificate: %d: %d: %d \n", *a, id, *ne, *nc, *nb);
         fflush(file);
     sem_post(sem_write);
     randomSleep(it);
     sem_wait(sem_write);
         (*a)++;
-        fprintf(file, "%d\t: IMM %d:\tgot certificate:\t%d\t%d\t%d\n", *a, id, *ne, *nc, *nb);
+        fprintf(file, "%d: IMM %d: got certificate: %d: %d: %d \n", *a, id, *ne, *nc, *nb);
         fflush(file);
     sem_post(sem_write);
     // leave
@@ -140,40 +140,52 @@ void imigrant_be_imigrant(int id) {
         sem_wait(sem_write);
             (*a)++;
             (*nb)--;
-            fprintf(file, "%d\t: IMM %d:\tleaves:\t%d\t%d\t%d\n", *a, id, *ne, *nc, *nb);
+            fprintf(file, "%d: IMM %d: leaves: %d: %d: %d \n", *a, id, *ne, *nc, *nb);
             fflush(file);
             (*migRest)--;
         sem_post(sem_write);
     sem_post(sem_enter);
+    exit(0);
 }
 
 void judge_be_judge() {
     while (1) {
+        while(*ne == 0) {}
         // Get ready
         randomSleep(jg);
         sem_wait(sem_write);
             (*a)++;
-            fprintf(file, "%d\t: JUDGE:\twants to enter\n", *a);
+            fprintf(file, "%d: JUDGE: wants to enter \n", *a);
             fflush(file);
         sem_post(sem_write);
         // enter
         sem_wait(sem_enter);
         sem_wait(sem_write);
             (*a)++;
-            fprintf(file, "%d\t: JUDGE:\tenters:\t%d\t%d\t%d\n", *a, *ne, *nc, *nb);
+            fprintf(file, "%d: JUDGE: enters: %d: %d: %d \n", *a, *ne, *nc, *nb);
             fflush(file);
         sem_post(sem_write);
         // confirm
-        sem_wait(sem_write);
-            (*a)++;
-            fprintf(file, "%d\t: JUDGE:\twaits for imm:\t%d\t%d\t%d\n", *a, *ne, *nc, *nb);
-            fflush(file);
-        sem_post(sem_write);
-        while (*ne != *nc) {
+
+        int i = 0;
+        while (1) {
+            sem_wait(sem_write);
+                if (*ne != *nc) {
+                    break;
+                }
+            sem_post(sem_write);
+            if (i == 0) {
+                sem_wait(sem_write);
+                (*a)++;
+                fprintf(file, "%d: JUDGE: waits for imm: %d: %d: %d \n", *a, *ne, *nc, *nb);
+                fflush(file);
+                sem_post(sem_write);
+                i++;
+            }
         }
         sem_wait(sem_write);
             (*a)++;
-            fprintf(file, "%d\t: JUDGE:\tstarts confirmation:\t%d\t%d\t%d\n", *a, *ne, *nc, *nb);
+            fprintf(file, "%d: JUDGE:starts confirmation: %d: %d: %d \n", *a, *ne, *nc, *nb);
             fflush(file);
         sem_post(sem_write);
         randomSleep(jt);
@@ -182,7 +194,7 @@ void judge_be_judge() {
             (*a)++;
             (*ne) = 0;
             (*nc) = 0;
-            fprintf(file, "%d\t: JUDGE:\tends confirmation:\t%d\t%d\t%d\n", *a, *ne, *nc, *nb);
+            fprintf(file, "%d: JUDGE: ends confirmation: %d: %d: %d \n", *a, *ne, *nc, *nb);
             fflush(file);
         sem_post(sem_write);
         for (int i = 0; i < help; i++) {
@@ -192,7 +204,7 @@ void judge_be_judge() {
         randomSleep(jt);
         sem_wait(sem_write);
             (*a)++;
-            fprintf(file, "%d\t: JUDGE:\tleaves:\t%d\t%d\t%d\n", *a, *ne, *nc, *nb);
+            fprintf(file, "%d: JUDGE: leaves: %d: %d: %d \n", *a, *ne, *nc, *nb);
             fflush(file);
         sem_post(sem_write);
         sem_post(sem_enter);
@@ -205,9 +217,10 @@ void judge_be_judge() {
     }
     sem_wait(sem_write);
         (*a)++;
-        fprintf(file, "%d\t: JUDGE:\tfinishes\n", *a);
+        fprintf(file, "%d: JUDGE: finishes \n", *a);
         fflush(file);
     sem_post(sem_write);
+    exit(0);
 }
 
 void imigrant_spawner() {
@@ -218,6 +231,7 @@ void imigrant_spawner() {
             imigrant_be_imigrant(i + 1);
         }
     }
+    exit(0);
 }
 
 int main(int argc, char *argv[])
@@ -298,6 +312,8 @@ int main(int argc, char *argv[])
         iterator++;
     }
 
+    printf("%d, %d, %d, %d, %d\n", pi, ig, jg, it, jt);
+
     // Arguments were parsed, let's try to do some magic
     int in = init();
     if (in != 0) {
@@ -315,9 +331,8 @@ int main(int argc, char *argv[])
         judge_be_judge();
     }
 
-    while (migRest != 0) {
-    }
-
+    while (*migRest != 0) {}
+    cleanup();
     return 0;
 }
 
