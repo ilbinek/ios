@@ -55,6 +55,7 @@ magic_do_what_you_need_to_do() {
     done
     IFS=$'\n'
   fi
+
   if [[ -d $1 ]]; then
     # If directory
     DIRS=$((DIRS+1))
@@ -91,40 +92,48 @@ if [ -t 1 ]; then
   COLS=$(tput cols)
   COLS=$((COLS-13))
 else
-  COLS=79
+  COLS=66
 fi
 BIGGEST=0
 magic_get_my_hasgtags() {
   if [[ $NORM == "1" ]]; then
-    if [ $FIRST == "1" ]; then
+    if [[ $FIRST == "1" ]]; then
       FIRST="0"
       # Find the biggest one
-      if [ "$BIGGEST" -ge $B100 ]; then
+      if [ $BIGGEST -le $B100 ]; then
         BIGGEST=$B100
-      elif [ "$BIGGEST" -ge $KIB1 ]; then
+      fi
+      if [ $BIGGEST -le $KIB1 ]; then
         BIGGEST=$KIB1
-      elif [ "$BIGGEST" -ge $KIB10 ]; then
+      fi
+      if [ $BIGGEST -le $KIB10 ]; then
         BIGGEST=$KIB10
-      elif [ "$BIGGEST" -ge $KIB100 ]; then
+      fi
+      if [ $BIGGEST -le $KIB100 ]; then
         BIGGEST=$KIB100
-      elif [ "$BIGGEST" -ge $MIB1 ]; then
+      fi
+      if [ $BIGGEST -le $MIB1 ]; then
         BIGGEST=$MIB1
-      elif [ "$BIGGEST" -ge $MIB10 ]; then
+      fi
+      if [ $BIGGEST -le $MIB10 ]; then
         BIGGEST=$MIB10
-      elif [ "$BIGGEST" -ge $MIB100 ]; then
+      fi
+      if [ $BIGGEST -le $MIB100 ]; then
         BIGGEST=$MIB100
-      elif [ "$BIGGEST" -ge $GIB1 ]; then
+      fi
+      if [ $BIGGEST -le $GIB1 ]; then
         BIGGEST=$GIB1
-      elif [ "$BIGGEST" -ge $O1GIB ]; then
+      fi
+      if [ $BIGGEST -le $O1GIB ]; then
         BIGGEST=$O1GIB
       fi
     fi
 
     HASTAGS=""
     HASHNBR=0
-
-    HELPME=$(())
-
+    HELPME=$1
+    HELPME=$((HELPME*COLS))
+    HASNBR=$((HELPME/BIGGEST))
     I=0
     while [[ $I -lt $HASNBR ]]; do
       HASTAGS="$HASTAGS""#"
@@ -143,7 +152,9 @@ magic_get_my_hasgtags() {
   return
 }
 
-for entry in $(find "$DIR")
+HELPMEPLS=$(find "$DIR" 2>/dev/null)
+
+for entry in $HELPMEPLS
 do
   magic_do_what_you_need_to_do "$entry"
 done
@@ -162,3 +173,10 @@ echo "  <10 MiB : $(magic_get_my_hasgtags $MIB10)"
 echo "  <100 MiB: $(magic_get_my_hasgtags $MIB100)"
 echo "  <1 GiB  : $(magic_get_my_hasgtags $GIB1)"
 echo "  >=1 GiB : $(magic_get_my_hasgtags $O1GIB)"
+
+if [ $? -eq 1 ]; then
+    echo An error occured
+    exit 1
+fi
+
+exit 0
