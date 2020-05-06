@@ -161,15 +161,29 @@ void judge_be_judge(int jg, int jt) {
         // confirm
 
         int i = 0;
-        while (*ne != *nc) {
+        sem_wait(sem_write);
+            int help1 = *ne;
+            int help2 = *nc;
+        sem_post(sem_write);
+        while (help1 != help2) {
             if (i == 0) {
+                int omg = 0;
                 sem_wait(sem_write);
-                (*a)++;
-                fprintf(file, "%d: JUDGE: waits for imm: %d: %d: %d \n", *a, *ne, *nc, *nb);
-                fflush(file);
+                if (*ne == *nc) {
+                    omg++;
+                }
+                if (omg == 0) {
+                    (*a)++;
+                    fprintf(file, "%d: JUDGE: waits for imm: %d: %d: %d \n", *a, *ne, *nc, *nb);
+                    fflush(file);
+                    i++;
+                }
                 sem_post(sem_write);
-                i++;
             }
+            sem_wait(sem_write);
+                help1 = *ne;
+                help2 = *nc;
+            sem_post(sem_write);
         }
         sem_wait(sem_write);
             (*a)++;
