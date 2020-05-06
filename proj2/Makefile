@@ -14,4 +14,4 @@ clean:
 	rm proj2
 
 zip:
-	zip xpupak01.zip *.c *.h Makefile
+	zip xpupak01.zip *.c Makefile
